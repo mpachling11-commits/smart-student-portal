@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Student Portfolio Placement Portal</title>
+    <link rel="preconnect" href="https://images.unsplash.com" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#home" aria-label="Portal home"><span class="brand-mark">SP</span><span>Smart Placement</span></a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#dashboard">Dashboard</a><a href="#students">Students</a><a href="#jobs">Jobs</a><a href="#apply">Apply</a><a href="#database">Database</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="home">
+        <div class="hero-copy">
+          <p class="eyebrow">Portfolio, placement, and analytics</p>
+          <h1>Smart Student Portfolio Placement Portal</h1>
+          <p>Manage student profiles, recruiter openings, smart job matches, and campus placement activity from a ready-to-use MongoDB-backed website.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#students">Explore Talent</a>
+            <a class="button secondary" href="#database">Access Database</a>
+          </div>
+        </div>
+        <aside class="hero-panel" aria-label="Placement snapshot">
+          <span>Live readiness score</span>
+          <strong id="heroRate">0%</strong>
+          <p>Placement rate updates from MongoDB records as students, jobs, and applications are added.</p>
+        </aside>
+      </section>
+
+      <section class="stats-band" id="dashboard" aria-label="Placement statistics">
+        <div><strong id="statStudents">0</strong><span>Student Profiles</span></div>
+        <div><strong id="statJobs">0</strong><span>Open Drives</span></div>
+        <div><strong id="statApplications">0</strong><span>Applications</span></div>
+        <div><strong id="statPlacementRate">0%</strong><span>Placement Rate</span></div>
+      </section>
+
+      <section class="section insight-strip">
+        <div>
+          <p class="eyebrow">Smart insights</p>
+          <h2>Skill trends from your talent database</h2>
+        </div>
+        <div class="skill-cloud" id="topSkills"></div>
+      </section>
+
+      <section class="section split" id="portfolio">
+        <div>
+          <p class="eyebrow">Portfolio first</p>
+          <h2>Every profile is recruiter ready</h2>
+          <p>Students can publish skills, projects, certifications, CGPA, portfolio links, and placement status. The placement team can filter candidates and discover best matches for each role.</p>
+          <div class="feature-list"><span>Skill matching</span><span>Project showcase</span><span>Application tracker</span><span>Database driven</span></div>
+        </div>
+        <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80" alt="Students working together on laptops" />
+      </section>
+
+      <section class="section" id="students">
+        <div class="section-heading">
+          <div><p class="eyebrow">Talent pool</p><h2>Student Portfolios</h2></div>
+          <span class="status-pill" id="dbStatus">Checking database</span>
+        </div>
+        <form class="toolbar" id="studentFilters">
+          <input name="search" type="search" placeholder="Search name, skill, branch" />
+          <input name="branch" type="search" placeholder="Branch" />
+          <input name="skill" type="search" placeholder="Skill" />
+          <input name="minCgpa" type="number" min="0" max="10" step="0.1" placeholder="Min CGPA" />
+          <button class="icon-button" type="submit" title="Filter students" aria-label="Filter students">Search</button>
+        </form>
+        <div class="card-grid" id="studentGrid"></div>
+      </section>
+
+      <section class="section muted" id="jobs">
+        <div class="section-heading">
+          <div><p class="eyebrow">Recruiter desk</p><h2>Placement Drives</h2></div>
+          <button class="button compact" id="refreshJobs" type="button">Refresh</button>
+        </div>
+        <form class="toolbar" id="jobFilters">
+          <input name="search" type="search" placeholder="Search company, role, skill" />
+          <select name="type" aria-label="Job type">
+            <option value="">All types</option>
+            <option>Full-time</option>
+            <option>Internship</option>
+          </select>
+          <button class="icon-button" type="submit" title="Filter jobs" aria-label="Filter jobs">Search</button>
+        </form>
+        <div class="job-list" id="jobList"></div>
+      </section>
+
+      <section class="section match-panel" id="matches">
+        <div>
+          <p class="eyebrow">Smart matching</p>
+          <h2>Recommended candidates</h2>
+          <p>Select any placement drive to rank students by required skills and CGPA.</p>
+        </div>
+        <div class="match-results" id="matchResults"></div>
+      </section>
+
+      <section class="section forms" id="apply">
+        <form class="portal-form" id="studentForm">
+          <p class="eyebrow">Student registration</p>
+          <h2>Create a Profile</h2>
+          <label>Full Name<input name="name" type="text" placeholder="Ananya Rao" required /></label>
+          <label>Branch<input name="branch" type="text" placeholder="Computer Science" required /></label>
+          <div class="form-row"><label>Year<input name="year" type="number" min="1" max="4" value="4" required /></label><label>CGPA<input name="cgpa" type="number" min="0" max="10" step="0.1" placeholder="8.7" required /></label></div>
+          <label>Skills<input name="skills" type="text" placeholder="Java, React, SQL" required /></label>
+          <label>Projects<input name="projects" type="text" placeholder="Resume parser, LMS app" /></label>
+          <label>Certifications<input name="certifications" type="text" placeholder="AWS, NPTEL, Google Analytics" /></label>
+          <label>Portfolio URL<input name="portfolioUrl" type="url" placeholder="https://yourportfolio.com" /></label>
+          <button class="button primary" type="submit">Save Student</button>
+          <p class="form-message" id="studentMessage"></p>
+        </form>
+
+        <form class="portal-form dark" id="jobForm">
+          <p class="eyebrow">Placement cell</p>
+          <h2>Post a Job</h2>
+          <label>Company<input name="company" type="text" placeholder="Wipro" required /></label>
+          <label>Role<input name="role" type="text" placeholder="Frontend Engineer" required /></label>
+          <div class="form-row"><label>Location<input name="location" type="text" placeholder="Pune" required /></label><label>Package<input name="package" type="text" placeholder="8 LPA" required /></label></div>
+          <label>Eligibility<input name="eligibility" type="text" placeholder="CGPA 7.0+, no active backlogs" /></label>
+          <label>Required Skills<input name="requiredSkills" type="text" placeholder="React, SQL, Java" /></label>
+          <div class="form-row"><label>Type<select name="type"><option>Full-time</option><option>Internship</option></select></label><label>Deadline<input name="deadline" type="date" /></label></div>
+          <button class="button light" type="submit">Publish Role</button>
+          <p class="form-message" id="jobMessage"></p>
+        </form>
+
+        <form class="portal-form apply-form" id="applicationForm">
+          <p class="eyebrow">Applications</p>
+          <h2>Submit Application</h2>
+          <label>Student<select name="studentId" id="studentSelect" required></select></label>
+          <label>Placement Drive<select name="jobId" id="jobSelect" required></select></label>
+          <label>Cover Note<textarea name="coverNote" rows="4" placeholder="Why this role fits your skills"></textarea></label>
+          <button class="button primary" type="submit">Apply Now</button>
+          <p class="form-message" id="applicationMessage"></p>
+        </form>
+      </section>
+
+      <section class="section applications">
+        <div class="section-heading"><div><p class="eyebrow">Placement tracker</p><h2>Recent Applications</h2></div></div>
+        <div class="application-list" id="applicationList"></div>
+      </section>
+
+      <section class="section database" id="database">
+        <div>
+          <p class="eyebrow">Database access</p>
+          <h2>MongoDB collections used by this website</h2>
+          <p>The backend uses the database configured in <strong>.env</strong>. Default local database: <strong>student_placement_portal</strong>.</p>
+        </div>
+        <ol class="steps">
+          <li>Start MongoDB locally or paste your MongoDB Atlas URI into <code>.env</code>.</li>
+          <li>Run <code>npm run seed</code> to create sample students and jobs.</li>
+          <li>Run <code>npm start</code> and open <code>http://localhost:3000</code>.</li>
+          <li>Open MongoDB Compass, connect to <code>mongodb://127.0.0.1:27017</code>, then browse <code>student_placement_portal</code>.</li>
+          <li>Use collections <code>students</code>, <code>jobs</code>, and <code>applications</code> to view live website data.</li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="site-footer"><span>Smart Student Portfolio Placement Portal</span><span>Express, MongoDB, HTML, CSS, JavaScript</span></footer>
+    <script src="app.js"></script>
+  </body>
+</html>

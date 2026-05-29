@@ -116,3 +116,27 @@ db.applications.find()
 - `POST /api/applications`
 
 The server creates useful indexes for student search, job matching, and unique student-job applications when it starts.
+
+## Deploy on Netlify
+
+This project is configured for Netlify with `netlify.toml`.
+
+1. Push the repo to GitHub.
+2. In Netlify, choose **Add new site** > **Import an existing project**.
+3. Select the GitHub repository.
+4. Keep these build settings:
+
+   ```text
+   Build command: npm run build
+   Publish directory: public
+   Functions directory: netlify/functions
+   ```
+
+5. Add environment variables in **Site configuration** > **Environment variables**:
+
+   ```text
+   MONGODB_URI=mongodb+srv://USER:PASSWORD@cluster-name.mongodb.net
+   DB_NAME=student_placement_portal
+   ```
+
+Use MongoDB Atlas for Netlify deployment. A local URI like `mongodb://127.0.0.1:27017` will not work from Netlify's servers.

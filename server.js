@@ -1,15 +1,15 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const { MongoClient, ObjectId } = require("mongodb");
+const { ObjectId } = require("mongodb");
+const { connectDB, dbName } = require("./db");
 require("dotenv").config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017";
-const dbName = process.env.DB_NAME || "student_placement_portal";
 
 let db;
+let dbReadyPromise;
 
 app.use(cors());
 app.use(express.json());
@@ -38,6 +38,58 @@ async function getCollection(name) {
   }
   return db.collection(name);
 }
+
+async function ensureApplicationIndexes() {
+  const applications = db.collection("applications");
+  const duplicateGroups = await applications
+    .aggregate([
+      { $group: { _id: { studentId: "$studentId", jobId: "$jobId" }, ids: { $push: "$_id" }, count: { $sum: 1 } } },
+      { $match: { count: { $gt: 1 } } }
+    ])
+    .toArray();
+
+  const duplicateIds = duplicateGroups.flatMap((group) => group.ids.slice(1));
+  if (duplicateIds.length) {
+    await applications.deleteMany({ _id: { $in: duplicateIds } });
+  }
+
+  const indexes = await applications.indexes();
+  const existing = indexes.find((index) => index.name === "studentId_1_jobId_1");
+  if (existing && !existing.unique) {
+    await applications.dropIndex(existing.name);
+  }
+
+  await applications.createIndex({ studentId: 1, jobId: 1 }, { unique: true });
+}
+
+async function initializeDatabase() {
+  if (db) return db;
+  if (dbReadyPromise) return dbReadyPromise;
+
+  dbReadyPromise = (async () => {
+    db = await connectDB();
+
+    await db.collection("students").createIndex({ name: 1 });
+    await db.collection("students").createIndex({ branch: 1, cgpa: -1 });
+    await db.collection("students").createIndex({ skills: 1 });
+    await db.collection("jobs").createIndex({ postedAt: -1 });
+    await db.collection("jobs").createIndex({ requiredSkills: 1 });
+    await ensureApplicationIndexes();
+
+    return db;
+  })();
+
+  return dbReadyPromise;
+}
+
+app.use("/api", async (req, res, next) => {
+  try {
+    await initializeDatabase();
+    next();
+  } catch (error) {
+    res.status(503).json({ error: `Database connection failed: ${error.message}` });
+  }
+});
 
 app.get("/api/health", async (_req, res) => {
   res.json({
@@ -275,45 +327,28 @@ app.get("*", (_req, res) => {
 });
 
 async function start() {
-  const client = new MongoClient(mongoUri);
-  await client.connect();
-  db = client.db(dbName);
+  await initializeDatabase();
 
-  await db.collection("students").createIndex({ name: 1 });
-  await db.collection("students").createIndex({ branch: 1, cgpa: -1 });
-  await db.collection("students").createIndex({ skills: 1 });
-  await db.collection("jobs").createIndex({ postedAt: -1 });
-  await db.collection("jobs").createIndex({ requiredSkills: 1 });
-  await db.collection("applications").createIndex({ studentId: 1, jobId: 1 });
-
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     console.log(`Student Portfolio & Placement Portal running at http://localhost:${port}`);
     console.log(`MongoDB database: ${dbName}`);
   });
+
+  server.on("error", (error) => {
+    if (error.code === "EADDRINUSE") {
+      console.error(`Port ${port} is already in use. Set PORT in .env or stop the other server.`);
+      process.exit(1);
+    }
+
+    throw error;
+  });
 }
 
-start().catch((error) => {
-  console.error("Unable to start server:", error.message);
-  process.exit(1);
-});
-const express = require('express');
-const dotenv = require('dotenv');
-const connectDB = require('./config/db');
+if (require.main === module) {
+  start().catch((error) => {
+    console.error("Unable to start server:", error.message);
+    process.exit(1);
+  });
+}
 
-dotenv.config();
-
-connectDB();
-
-const app = express();
-
-app.use(express.json());
-
-app.get('/', (req, res) => {
-  res.send('API Running');
-});
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = app;
